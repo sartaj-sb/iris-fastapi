@@ -10,9 +10,6 @@ import joblib
 # Import numpy for numerical operations
 import numpy as np
 
-from fastapi.responses import HTMLResponse
-from fastapi import Form
-
 
 
 # -------------------------------------------
@@ -96,46 +93,3 @@ def health():
 @app.get("/version")
 def version():
     return {"model_version": "1.0.0"}
-
-@app.get("/", response_class=HTMLResponse)
-def home():
-    return """
-    <html>
-        <head>
-            <title>Iris Classifier</title>
-        </head>
-        <body style="font-family: Arial; padding: 40px;">
-            <h2>Iris Flower Prediction</h2>
-
-            <form action="/predict-ui" method="post">
-                Sepal Length: <input type="number" step="0.1" name="sepal_length"><br><br>
-                Sepal Width: <input type="number" step="0.1" name="sepal_width"><br><br>
-                Petal Length: <input type="number" step="0.1" name="petal_length"><br><br>
-                Petal Width: <input type="number" step="0.1" name="petal_width"><br><br>
-
-                <button type="submit">Predict</button>
-            </form>
-        </body>
-    </html>
-    """
-@app.post("/predict-ui", response_class=HTMLResponse)
-def predict_ui(
-    sepal_length: float = Form(...),
-    sepal_width: float = Form(...),
-    petal_length: float = Form(...),
-    petal_width: float = Form(...)
-):
-    features = np.array([[sepal_length, sepal_width, petal_length, petal_width]])
-    pred = model.predict(features)[0]
-
-    classes = ["setosa", "versicolor", "virginica"]
-
-    return f"""
-    <html>
-        <body style="font-family: Arial; padding: 40px;">
-            <h2>Prediction Result</h2>
-            <p><b>Predicted class:</b> {classes[pred]}</p>
-            <a href="/">Try again</a>
-        </body>
-    </html>
-    """
