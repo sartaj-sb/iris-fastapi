@@ -23,7 +23,7 @@ app = FastAPI()
 # Load the saved ML model
 # This file must be in the same folder as this script
 # -------------------------------------------
-model = joblib.load("iris_model.pkl")
+model =  joblib.load("iris_model.pkl")
 
 
 
