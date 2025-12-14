@@ -1,0 +1,95 @@
+# Import FastAPI class to create an API application
+from fastapi import FastAPI
+
+# Import BaseModel from Pydantic for data validation and schema creation
+from pydantic import BaseModel
+
+# Import joblib to load the trained ML model saved earlier
+import joblib
+
+# Import numpy for numerical operations
+import numpy as np
+
+
+
+# -------------------------------------------
+# Create the FastAPI application instance
+# This 'app' object will handle routes and API behavior
+# -------------------------------------------
+app = FastAPI()
+
+
+# -------------------------------------------
+# Load the saved ML model
+# This file must be in the same folder as this script
+# -------------------------------------------
+model = joblib.load("iris_model.pkl")
+
+
+
+# -------------------------------------------
+# Define what input format the API expects
+# Pydantic automatically:
+# - Validates incoming JSON
+# - Converts types (str → float)
+# - Throws errors if fields are missing
+# -------------------------------------------
+class IrisInput(BaseModel):
+    sepal_length: float      # Required field: sepal length
+    sepal_width: float       # Required field: sepal width
+    petal_length: float      # Required field: petal length
+    petal_width: float       # Required field: petal width
+
+
+
+# -------------------------------------------
+# Create a POST endpoint named "/predict"
+# This endpoint will:
+# 1. Accept input as JSON -> Converted to IrisInput object
+# 2. Convert data to NumPy array
+# 3. Make prediction using the ML model
+# 4. Return predicted class name
+# -------------------------------------------
+@app.post("/predict")
+def predict(data: IrisInput):
+    
+    # Convert the validated Pydantic object into a 2D NumPy array
+    features = np.array([
+        [
+            data.sepal_length,
+            data.sepal_width,
+            data.petal_length,
+            data.petal_width
+        ]
+    ])
+
+    # Predict the class using the saved model
+    pred = model.predict(features)[0]
+
+    # Mapping numeric prediction to actual flower names
+    classes = ["setosa", "versicolor", "virginica"]
+
+    # Return prediction as JSON response
+    return {"prediction": classes[pred]}
+
+
+
+# -------------------------------------------
+# Health check endpoint:
+# Used by developers, monitoring tools, cloud services
+# Helps verify that API server is alive and responding
+# -------------------------------------------
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+
+# -------------------------------------------
+# Model version endpoint:
+# Useful when you update your model later
+# This helps determine which version is currently deployed
+# -------------------------------------------
+@app.get("/version")
+def version():
+    return {"model_version": "1.0.0"}
